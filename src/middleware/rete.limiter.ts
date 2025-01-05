@@ -34,7 +34,7 @@ const limiter = rateLimit({
 });
 
 
-const blockIPMiddleware = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+const blockIPMiddleware = (req: Request, res: Response, next: NextFunction) => {
     const ip = req.ip;
 
     if (!ip) {

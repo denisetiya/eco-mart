@@ -9,20 +9,135 @@ generator client {
 }
 
 datasource db {
-  provider = "cockroachdb"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 
 model User {
-  id            String @id 
-  email         String @unique
-  password      String
-  refreshToken  String? 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  username    String         @unique
+  email       String         @unique
+  noHp        String?
+  password    String
+  userImg     String?
+  role        String         @default("user")
+  createdAt   DateTime       @default(now())
+  token       Token?
+  alamat      UserAddress[]
+  saller      Saller[]
+  order       Order[]
+  chat        Chat[]
+  review      Review[]
 }
 
+model Token {
+  refresh     String         @id @map("_id") 
+  userId      String         @db.ObjectId @unique
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
 
+model UserAddress {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String         @db.ObjectId
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provinsi    String
+  kota        String
+  kecamatan   String
+  kelurahan   String
+  detail      String
+}
 
+model Saller {
+  id              String         @id @map("_id") @default(auto()) @db.ObjectId
+  userId          String         @db.ObjectId @unique
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sallerName      String
+  sallerDesc      String
+  sallerImg       String?
+  sallerApproved  Boolean        @default(false)
+  alamat          SallerAddress[]
+  chat            Chat[]
+  order           Order[]
+  Product         Product[]
+}
+
+model SallerAddress {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  sallerId    String         @db.ObjectId
+  saller      Saller         @relation(fields: [sallerId], references: [id], onDelete: Cascade)
+  provinsi    String
+  kota        String
+  kecamatan   String
+  kelurahan   String
+  detail      String
+}
+
+model Order {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String         @db.ObjectId @unique
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId   String         @db.ObjectId
+  product     Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  cart        Boolean        @default(true)
+  quantity    Int
+  payment     Boolean        @default(false)
+  orderDate   DateTime       @updatedAt
+  sallerId    String         @db.ObjectId
+  saller      Saller         @relation(fields: [sallerId], references: [id], onDelete: Cascade)
+}
+
+model Product {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  sallerId          String           @db.ObjectId
+  saller            Saller           @relation(fields: [sallerId], references: [id], onDelete: Cascade)
+  imgUrl            String
+  productName       String
+  productDesc       String
+  productPrice      Int
+  productStock      Int
+  productSold       Int?
+  variant           ProductVariant[]
+  productCategory   String
+  orders            Order[]
+  reviews           Review[]
+  lastUpdate        DateTime         @updatedAt
+}
+
+model ProductVariant {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  productId   String         @db.ObjectId
+  product     Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variantName     String
+  stock       Int
+  variantImg  String
+}
+
+model Review {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String         @db.ObjectId
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId   String         @db.ObjectId
+  product     Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  rating      Int
+  review      String
+  reviewDate  DateTime       @updatedAt
+}
+
+model Chat {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String         @db.ObjectId
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sallerId    String         @db.ObjectId
+  saller      Saller         @relation(fields: [sallerId], references: [id], onDelete: Cascade)
+  message     String
+  chatDate    DateTime       @updatedAt
+}
+
+model Cart {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String         @db.ObjectId
+  productId   String         @db.ObjectId
+  count       Int
+}

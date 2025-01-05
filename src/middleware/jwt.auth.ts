@@ -27,7 +27,7 @@ export const authenticateJWT = async (req: Request, res: Response, next: NextFun
                         return response(res, 401, "Unauthorized", err);
                     }
     
-                    const storedToken = await prisma.user.findFirst({ where: { refreshToken: refreshToken }});
+                    const storedToken = await prisma.user.findFirst({ where: { token: refreshToken }});
     
                     if (!storedToken) return response(res, 403, "Forbidden");
     
